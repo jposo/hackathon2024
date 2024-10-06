@@ -12,6 +12,7 @@ import L from 'leaflet';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { getScenePaths, login } from './fetch';
 
 let DefaultIcon = L.icon({
   iconUrl: markerIcon,
@@ -28,6 +29,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 function App() {
   const [coords, setCoords] = useState({lat: 0, lng: 0});
   const [allowClick, setAllowClick] = useState(false);
+  const [scenePath, setScenePath] = useState([]);
 
   const CoordOnClick = () => {
     const map = useMapEvents({
@@ -82,6 +84,13 @@ function App() {
             ]
   const switched = path.map(coord => [coord[1], coord[0]]);
 
+  const showData = async () => {
+    const apiKey = await login();
+    console.log(apiKey);
+    const scenePaths = await getScenePaths(apiKey, [coords.lat, coords.lng]);
+    setScenePath(scenePaths);
+  };
+
   return (
     <div className="App" style={{
       display: "flex",
@@ -104,7 +113,7 @@ function App() {
         />
         <CoordOnClick />
         <Marker position={[coords.lat, coords.lng]}></Marker>
-        <Polygon pathOptions={{ color: "red" }} positions={switched} />
+        <Polygon pathOptions={{ color: "red" }} positions={scenePath} />
       </MapContainer>
       <div style={{
         position: "absolute",
@@ -194,12 +203,9 @@ function App() {
               label="Ending day" 
               defaultValue="2024-10-05"
             />
-            {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker label="Starting day" />
-            </LocalizationProvider> */}
           </div>
         </div>
-        <Button variant="contained">Confirm</Button>
+        <Button onClick={showData} variant="contained">Confirm</Button>
       </div>
     </div>
   );
